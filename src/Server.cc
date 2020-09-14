@@ -368,40 +368,43 @@ bool UpStratumClient::handleMessage() {
   {
     const uint16_t ciphertextLen = *(uint16_t *)(buf + 2);
     const uint8_t randomLen = *(uint8_t *)(buf + 3);
-    string randomStr,ciphertext;
+    string randomStr;
+    string ciphertext;
     randomStr.resize(randomLen);
     ciphertext.resize(ciphertextLen);
     evbuffer_remove(inBuf_, (uint8_t *)randomStr.data(), randomStr.size());
     evbuffer_remove(inBuf_, (uint8_t *)ciphertext.data(), ciphertext.size());
-    string *ret=cryptoDec(randomStr,ciphertext);
 
-    if (ret[0] == CMD_MAGIC_NUMBER) {
-    const uint16_t exMessageLen = *(uint16_t *)(ret + 1);
-    if (evBufLen < exMessageLen)  // didn't received the whole message yet
-      return false;
+    const string * ret = cryptoDec(&randomStr, &ciphertext);
+    const uint8_t *ret_p = (uint8_t *)ret->data();
 
-    // copies and removes the first datlen bytes from the front of buf
-    // into the memory at data
-    string exMessage;
-    exMessage.resize(exMessageLen);
-    exMessage=ret.substr(2,exMessageLen);
+    if (ret_p[0] == CMD_MAGIC_NUMBER) {
+      const uint16_t exMessageLen = *(uint16_t *)(ret_p + 1);
+      if (evBufLen < exMessageLen)  // didn't received the whole message yet
+        return false;
 
-    switch (ret[1]) {
-      case CMD_MINING_SET_DIFF:
-        handleExMessage_MiningSetDiff(&exMessage);
-        break;
+      // copies and removes the first datlen bytes from the front of buf
+      // into the memory at data
+      string exMessage;
+      exMessage.resize(exMessageLen);
+      exMessage = ret->substr(2,exMessageLen);
 
-      case CMD_SUBMIT_RESPONSE:
-        handleExMessage_SubmitResponse(&exMessage);
-        break;
+      switch (ret_p[1]) {
+        case CMD_MINING_SET_DIFF:
+          handleExMessage_MiningSetDiff(&exMessage);
+          break;
 
-      default:
-        handleExMessage(&exMessage);
-        break;
+        case CMD_SUBMIT_RESPONSE:
+          handleExMessage_SubmitResponse(&exMessage);
+          break;
+
+        default:
+          handleExMessage(&exMessage);
+          break;
+      }
+      return true;  // read message success, return true
     }
-    return true;  // read message success, return true
-  }
-  }else if (buf[0] == CMD_MAGIC_NUMBER) {
+  } else if (buf[0] == CMD_MAGIC_NUMBER) {
     const uint16_t exMessageLen = *(uint16_t *)(buf + 1);
     if (evBufLen < exMessageLen)  // didn't received the whole message yet
       return false;
@@ -476,17 +479,8 @@ void UpStratumClient::handleExMessage_SubmitResponse(const string *exMessage) {
 
   server_->sendSubmitResponse(id, status);
 }
- unsigned int smpleHash(char *str)
-{
-    uint32_t seed = 131;
-    uint32_t hash = 0;
-    while (*str) {
-        hash = hash * seed + (*str++);
-    }
-    return (hash & 0x7FFFFFFF); 
-}
 
-void StratumSession::cryptoEnc(const char *data, size_t len) {
+void UpStratumClient::cryptoEnc(const char *data, size_t len) {
       
       srand((unsigned)time(0));
       string buf;
@@ -496,15 +490,15 @@ void StratumSession::cryptoEnc(const char *data, size_t len) {
 
 }
 
-void UpStratumClient::cryptoDec(const string *randomStr,const string  *ciphertext) {
+const string * UpStratumClient::cryptoDec(const string *randomStr, const string *ciphertext) {
 
   return ciphertext;
       string key="hello_xxx";
-      key.append(randomStr);
-      uint16_t l=strlen(ciphertext);
+      key.append(*randomStr);
+      uint16_t l = ciphertext->length();
       if (l<=4){
         const uint8_t *p = (uint8_t *)ciphertext->data();
-        const uint32_t temp;
+        uint32_t temp;
         if (l==1){
           temp=*(uint8_t *)p;
         }else if (l==2)
@@ -517,7 +511,7 @@ void UpStratumClient::cryptoDec(const string *randomStr,const string  *ciphertex
         {
           temp=*(uint32_t *)p;
         }
-        uint32_t r=smpleHash(key.data());
+        uint32_t r = simpleHash(key.data());
         uint32_t rt=temp^r;
       }else
       {
