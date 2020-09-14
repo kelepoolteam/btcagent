@@ -363,19 +363,25 @@ bool UpStratumClient::handleMessage() {
   uint8_t buf[4];
   evbuffer_copyout(inBuf_, buf, 4);
 
+  LOG(INFO) << "buf[0]" << buf[0] << "): " << std::endl;
+
   // handle ex-message
   if (buf[0] == CMD_CRYPTO) 
   {
     const uint16_t ciphertextLen = *(uint16_t *)(buf + 2);
     const uint8_t randomLen = *(uint8_t *)(buf + 3);
-    string randomStr;
+    if (evBufLen < ciphertextLen)  // didn't received the whole message yet
+      return false;
+
     string ciphertext;
-    randomStr.resize(randomLen);
     ciphertext.resize(ciphertextLen);
-    evbuffer_remove(inBuf_, (uint8_t *)randomStr.data(), randomStr.size());
     evbuffer_remove(inBuf_, (uint8_t *)ciphertext.data(), ciphertext.size());
 
-    const string * ret = cryptoDec(&randomStr, &ciphertext);
+    string randomStr = ciphertext.substr(4, randomLen);
+    string encryptData = ciphertext.substr(4+randomLen, ciphertextLen - randomLen - 4);
+    LOG(INFO) << "UpStratumClient recv(" << encryptData << "): " << std::endl;
+
+    const string * ret = cryptoDec(&randomStr, &encryptData);
     const uint8_t *ret_p = (uint8_t *)ret->data();
 
     if (ret_p[0] == CMD_MAGIC_NUMBER) {
@@ -403,6 +409,9 @@ bool UpStratumClient::handleMessage() {
           break;
       }
       return true;  // read message success, return true
+    } else {
+      handleStratumMessage(*ret);
+      return true;
     }
   } else if (buf[0] == CMD_MAGIC_NUMBER) {
     const uint16_t exMessageLen = *(uint16_t *)(buf + 1);

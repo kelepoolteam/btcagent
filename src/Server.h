@@ -53,7 +53,7 @@
 #define CMD_SUBMIT_SHARE_WITH_TIME_VER    0x13u    // Agent -> Pool,  mining.submit(..., nTime, nVersionMask)
 #define CMD_GET_NONCE_PREFIX              0x21u    // Agent -> Pool,  ask the pool to allocate nonce prefix
 #define CMD_SET_NONCE_PREFIX              0x22u    // Pool  -> Agent, pool nonce prefix allocation result
-#define CMD_CRYPTO                        0x1Eu    // crypto type
+#define CMD_CRYPTO                        0x1Fu    // crypto type
 
 // agent, DO NOT CHANGE
 #define AGENT_MAX_SESSION_ID   0xFFFEu  // 0xFFFEu = 65534
