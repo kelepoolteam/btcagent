@@ -30,6 +30,7 @@
 #include <event2/bufferevent.h>
 #include <event2/listener.h>
 #include <event2/util.h>
+#include<stdlib.h>
 
 #if (defined _WIN32 && defined USE_IOCP)
  #include <event2/thread.h>
@@ -363,9 +364,45 @@ bool UpStratumClient::handleMessage() {
   evbuffer_copyout(inBuf_, buf, 4);
 
   // handle ex-message
-  if (buf[0] == CMD_MAGIC_NUMBER) {
-    const uint16_t exMessageLen = *(uint16_t *)(buf + 2);
+  if (buf[0] == CMD_CRYPTO) 
+  {
+    const uint16_t ciphertextLen = *(uint16_t *)(buf + 2);
+    const uint8_t randomLen = *(uint8_t *)(buf + 3);
+    string randomStr,ciphertext;
+    randomStr.resize(randomLen);
+    ciphertext.resize(ciphertextLen);
+    evbuffer_remove(inBuf_, (uint8_t *)randomStr.data(), randomStr.size());
+    evbuffer_remove(inBuf_, (uint8_t *)ciphertext.data(), ciphertext.size());
+    string *ret=cryptoDec(randomStr,ciphertext);
 
+    if (ret[0] == CMD_MAGIC_NUMBER) {
+    const uint16_t exMessageLen = *(uint16_t *)(ret + 1);
+    if (evBufLen < exMessageLen)  // didn't received the whole message yet
+      return false;
+
+    // copies and removes the first datlen bytes from the front of buf
+    // into the memory at data
+    string exMessage;
+    exMessage.resize(exMessageLen);
+    exMessage=ret.substr(2,exMessageLen);
+
+    switch (ret[1]) {
+      case CMD_MINING_SET_DIFF:
+        handleExMessage_MiningSetDiff(&exMessage);
+        break;
+
+      case CMD_SUBMIT_RESPONSE:
+        handleExMessage_SubmitResponse(&exMessage);
+        break;
+
+      default:
+        handleExMessage(&exMessage);
+        break;
+    }
+    return true;  // read message success, return true
+  }
+  }else if (buf[0] == CMD_MAGIC_NUMBER) {
+    const uint16_t exMessageLen = *(uint16_t *)(buf + 1);
     if (evBufLen < exMessageLen)  // didn't received the whole message yet
       return false;
 
@@ -439,6 +476,64 @@ void UpStratumClient::handleExMessage_SubmitResponse(const string *exMessage) {
 
   server_->sendSubmitResponse(id, status);
 }
+ unsigned int smpleHash(char *str)
+{
+    uint32_t seed = 131;
+    uint32_t hash = 0;
+    while (*str) {
+        hash = hash * seed + (*str++);
+    }
+    return (hash & 0x7FFFFFFF); 
+}
+
+void StratumSession::cryptoEnc(const char *data, size_t len) {
+      
+      srand((unsigned)time(0));
+      string buf;
+      // buf.resize(len, 0);
+      // uint8_t *p = (uint8_t *)buf.data();
+
+
+}
+
+void UpStratumClient::cryptoDec(const string *randomStr,const string  *ciphertext) {
+
+  return ciphertext;
+      string key="hello_xxx";
+      key.append(randomStr);
+      uint16_t l=strlen(ciphertext);
+      if (l<=4){
+        const uint8_t *p = (uint8_t *)ciphertext->data();
+        const uint32_t temp;
+        if (l==1){
+          temp=*(uint8_t *)p;
+        }else if (l==2)
+        {
+          temp=*(uint16_t *)p;
+        }else if (l==3)
+        {
+          temp=*(uint16_t *)p*256+*(uint8_t *)(p+2);
+        }else
+        {
+          temp=*(uint32_t *)p;
+        }
+        uint32_t r=smpleHash(key.data());
+        uint32_t rt=temp^r;
+      }else
+      {
+        uint16_t i=0;
+        const uint8_t *p = (uint8_t *)ciphertext->data();
+      while (l>i)
+      {
+        i+=4;
+        
+      }
+      
+      }
+        
+}
+
+
 
 void UpStratumClient::sendData(const char *data, size_t len) {
   if (state_ == UP_INIT) {

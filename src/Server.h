@@ -53,6 +53,7 @@
 #define CMD_SUBMIT_SHARE_WITH_TIME_VER    0x13u    // Agent -> Pool,  mining.submit(..., nTime, nVersionMask)
 #define CMD_GET_NONCE_PREFIX              0x21u    // Agent -> Pool,  ask the pool to allocate nonce prefix
 #define CMD_SET_NONCE_PREFIX              0x22u    // Pool  -> Agent, pool nonce prefix allocation result
+#define CMD_CRYPTO                        0x1Eu    // crypto type
 
 // agent, DO NOT CHANGE
 #define AGENT_MAX_SESSION_ID   0xFFFEu  // 0xFFFEu = 65534
@@ -325,6 +326,10 @@ class UpStratumClient {
 
   void initConnection();
   void disconnect();
+  void cryptoEnc(const char *data, size_t len);
+
+  void cryptoDec(const string *randomStr,const string  *ciphertext);
+  unsigned int smpleHash(char *str);
 
 public:
   UpStratumClientState state_ = UP_INIT;
