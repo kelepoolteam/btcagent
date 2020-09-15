@@ -381,8 +381,8 @@ bool UpStratumClient::handleMessage() {
     string encryptData = ciphertext.substr(4+randomLen, ciphertextLen - randomLen - 4);
     LOG(INFO) << "UpStratumClient recv(" << encryptData << "): " << std::endl;
 
-    const string * ret = cryptoDec(&randomStr, &encryptData);
-    const uint8_t *ret_p = (uint8_t *)ret->data();
+    string ret = cryptoDec(&randomStr, &encryptData);
+    const uint8_t *ret_p = (uint8_t *)ret.data();
 
     if (ret_p[0] == CMD_MAGIC_NUMBER) {
       const uint16_t exMessageLen = *(uint16_t *)(ret_p + 1);
@@ -489,63 +489,90 @@ void UpStratumClient::handleExMessage_SubmitResponse(const string *exMessage) {
   server_->sendSubmitResponse(id, status);
 }
 
-void UpStratumClient::cryptoEnc(const char *data, size_t len) {
-      
-      srand((unsigned)time(0));
-      string buf;
-      // buf.resize(len, 0);
-      // uint8_t *p = (uint8_t *)buf.data();
+string cryptoEnc(const string *ciphertext){
 
-
+    srand((unsigned)time(0));
+    uint8_t num = rand() % 8 + 1;
+    string randstr;
+    for (int i=0;i<num;i++){
+        uint8_t tp=rand()%256;
+        randstr.push_back((char)tp);
+    }
+    string x=cryptoDec(&randstr,ciphertext);
+    string final;
+    uint8_t px=0x1fU;
+    final.push_back((char)px);
+    uint16_t len=4+num+x.length();
+    char* pp=(char*)&len;
+    final.push_back(*((char *)pp+0));
+    final.push_back(*((char *)pp+1));
+    final.append(randstr);
+    final.append(x);
+    return final;
+    
 }
 
-const string * UpStratumClient::cryptoDec(const string *randomStr, const string *ciphertext) {
+string UpStratumClient::cryptoDec(const string *randomStr, const string *ciphertext) {
 
-  return ciphertext;
-      string key="hello_xxx";
-      key.append(*randomStr);
-      uint16_t l = ciphertext->length();
-      if (l<=4){
-        const uint8_t *p = (uint8_t *)ciphertext->data();
-        uint32_t temp;
-        if (l==1){
-          temp=*(uint8_t *)p;
-        }else if (l==2)
-        {
-          temp=*(uint16_t *)p;
-        }else if (l==3)
-        {
-          temp=*(uint16_t *)p*256+*(uint8_t *)(p+2);
-        }else
-        {
-          temp=*(uint32_t *)p;
-        }
-        uint32_t r = simpleHash(key.data());
-        uint32_t rt=temp^r;
-      }else
+    string keyss="helloxxx";
+    keyss.append(*randomStr);
+    uint16_t l = ciphertext->length();
+    uint16_t i=0;
+    const uint8_t *p = (uint8_t *)ciphertext->data();
+    uint32_t temp;
+    string final;
+    uint32_t r;
+    uint32_t rt;
+    string ssss;
+
+      while (l>i+4)
       {
-        uint16_t i=0;
-        const uint8_t *p = (uint8_t *)ciphertext->data();
-      while (l>i)
-      {
+        
+        temp=*(uint32_t *)(p+i);
+        char* ppps=(char*)&temp;
+        keyss.append("i");
+        r = simpleHash(keyss.c_str());
+        char* ppp=(char*)&r;
+        rt=temp^r;
+        char* pp=(char*)&rt;
+        final.push_back(*((char *)pp+0));
+        final.push_back(*((char *)pp+1));
+        final.push_back(*((char *)pp+2));
+        final.push_back(*((char *)pp+3));
         i+=4;
         
       }
-      
-      }
-        
+        if (l==i+1){
+          temp=*(uint8_t *)(p+i);
+        }else if (l==i+2)
+        {
+          temp=*(uint16_t *)(p+i);
+        }else if (l==i+3)
+        {
+          temp=*(uint16_t *)(p+i)<<8+*(uint8_t *)(p+i+2);
+        }else
+        {
+          temp=*(uint32_t *)(p+i);
+        }
+        r = simpleHash(keyss.data());
+        rt=temp^r;
+        char* pp=(char*)&rt;
+        final.push_back(*((char *)pp+0));
+        final.push_back(*((char *)pp+1));
+        final.push_back(*((char *)pp+2));
+        final.push_back(*((char *)pp+3));
+        return final;
 }
-
-
 
 void UpStratumClient::sendData(const char *data, size_t len) {
   if (state_ == UP_INIT) {
     DLOG(INFO) << "UpStratumClient unavailable, skip(" << len << ")" << std::endl;
     return;
   }
-
+  string x=data;
+  string final=cryptoEnc(&x);
   // add data to a bufferevent’s output buffer
-  bufferevent_write(bev_, data, len);
+  bufferevent_write(bev_, final.data(),final.length() );
   // DLOG(INFO) << "UpStratumClient send(" << len << "): " << data << std::endl;
 }
 

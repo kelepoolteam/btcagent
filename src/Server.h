@@ -326,9 +326,8 @@ class UpStratumClient {
 
   void initConnection();
   void disconnect();
-  void cryptoEnc(const char *data, size_t len);
-
-  const string * cryptoDec(const string *randomStr, const string *ciphertext);
+  string cryptoEnc(const char *data, size_t len);
+  string cryptoDec(const string *randomStr, const string *ciphertext);
 
 public:
   UpStratumClientState state_ = UP_INIT;
