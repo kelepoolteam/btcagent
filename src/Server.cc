@@ -489,7 +489,7 @@ void UpStratumClient::handleExMessage_SubmitResponse(const string *exMessage) {
   server_->sendSubmitResponse(id, status);
 }
 
-string cryptoEnc(const string *ciphertext){
+string UpStratumClient::cryptoEnc(const string *ciphertext){
 
     srand((unsigned)time(0));
     uint8_t num = rand() % 8 + 1;
@@ -529,16 +529,14 @@ string UpStratumClient::cryptoDec(const string *randomStr, const string *ciphert
       {
         
         temp=*(uint32_t *)(p+i);
-        char* ppps=(char*)&temp;
         keyss.append("i");
         r = simpleHash(keyss.c_str());
-        char* ppp=(char*)&r;
         rt=temp^r;
         char* pp=(char*)&rt;
-        final.push_back(*((char *)pp+0));
-        final.push_back(*((char *)pp+1));
-        final.push_back(*((char *)pp+2));
-        final.push_back(*((char *)pp+3));
+        final.push_back(*((char *)(pp+0)));
+        final.push_back(*((char *)(pp+1)));
+        final.push_back(*((char *)(pp+2)));
+        final.push_back(*((char *)(pp+3)));
         i+=4;
         
       }
@@ -557,10 +555,9 @@ string UpStratumClient::cryptoDec(const string *randomStr, const string *ciphert
         r = simpleHash(keyss.data());
         rt=temp^r;
         char* pp=(char*)&rt;
-        final.push_back(*((char *)pp+0));
-        final.push_back(*((char *)pp+1));
-        final.push_back(*((char *)pp+2));
-        final.push_back(*((char *)pp+3));
+        for (int j=0;j<l-i;j++){
+        final.push_back(*((char *)(pp+j)));
+        }
         return final;
 }
 
