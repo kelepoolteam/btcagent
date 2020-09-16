@@ -269,3 +269,15 @@ string strToHex(string str, std::string separator)
 		ss << hex[(unsigned char)str[i] >> 4] << hex[(unsigned char)str[i] & 0xf] << separator;
   return ss.str();
 }
+
+string strHex2StrObj(string hex) {
+  int len = hex.length();
+  std::string newString;
+  for(int i=0; i< len; i+=2)
+  {
+      string byte = hex.substr(i,2);
+      char chr = (char) (int)strtol(byte.c_str(), NULL, 16);
+      newString.push_back(chr);
+  }
+  return newString;
+}

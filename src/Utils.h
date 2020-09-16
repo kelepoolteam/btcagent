@@ -138,5 +138,6 @@ bool strEmpty(const string &str);
 unsigned int simpleHash(const char *str);
 std::string chToHex(unsigned char ch);
 string strToHex(std::string str, std::string separator = "");
+string strHex2StrObj(string hex);
 
 #endif
