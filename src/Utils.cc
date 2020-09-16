@@ -237,7 +237,7 @@ unsigned int simpleHash(const char *str) {
     uint32_t seed = 131;
     uint32_t hash = 0;
     while (*str) {
-        hash = hash * seed + (*str++);
+        hash = hash * seed + (unsigned char)(*str++);
     }
     return (hash & 0x7FFFFFFF); 
 }
