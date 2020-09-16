@@ -363,14 +363,15 @@ bool UpStratumClient::handleMessage() {
   uint8_t buf[4];
   evbuffer_copyout(inBuf_, buf, 4);
 
-  LOG(INFO) << "buf[0]" << buf[0] << "): " << std::endl;
+  LOG(INFO) << "buf: " << chToHex(buf[0]) << chToHex(buf[1]) << chToHex(buf[2]) << chToHex(buf[3]) << std::endl;
 
   // handle ex-message
   if (buf[0] == CMD_CRYPTO) 
   {
-    const uint16_t ciphertextLen = *(uint16_t *)(buf + 2);
+    const uint16_t ciphertextLen = *(uint16_t *)(buf + 1);
     const uint8_t randomLen = *(uint8_t *)(buf + 3);
-    if (evBufLen < ciphertextLen)  // didn't received the whole message yet
+    LOG(INFO) << "ciphertextLen: " << ciphertextLen << " evBufLen:" << evBufLen << std::endl;
+    if (evBufLen < ciphertextLen)   // didn't received the whole message yet
       return false;
 
     string ciphertext;
@@ -379,11 +380,11 @@ bool UpStratumClient::handleMessage() {
 
     string randomStr = ciphertext.substr(4, randomLen);
     string encryptData = ciphertext.substr(4+randomLen, ciphertextLen - randomLen - 4);
-    LOG(INFO) << "UpStratumClient recv(" << encryptData << "): " << std::endl;
-
     string ret = cryptoDec(&randomStr, &encryptData);
-    const uint8_t *ret_p = (uint8_t *)ret.data();
+    LOG(INFO) << "ciphertext:" << strToHex(ciphertext) << " randomStr:" << strToHex(randomStr) 
+              << " encryptData:" << strToHex(encryptData) << " plaintext:" << ret << std::endl;
 
+    const uint8_t *ret_p = (uint8_t *)ret.data();
     if (ret_p[0] == CMD_MAGIC_NUMBER) {
       const uint16_t exMessageLen = *(uint16_t *)(ret_p + 1);
       if (evBufLen < exMessageLen)  // didn't received the whole message yet
@@ -489,7 +490,7 @@ void UpStratumClient::handleExMessage_SubmitResponse(const string *exMessage) {
   server_->sendSubmitResponse(id, status);
 }
 
-string UpStratumClient::cryptoEnc(const string *ciphertext){
+string UpStratumClient::cryptoEnc(const string *plaintext){
     srand((unsigned)time(0));
     uint8_t num = rand() % 8 + 1;
     string randstr;
@@ -497,21 +498,22 @@ string UpStratumClient::cryptoEnc(const string *ciphertext){
         uint8_t tp=rand()%256;
         randstr.push_back((char)tp);
     }
-    string x=cryptoDec(&randstr,ciphertext);
+    string ciphertext = cryptoDec(&randstr, plaintext);
     string final_data;
     uint8_t px=0x1fU;
     final_data.push_back((char)px);
-    uint16_t len= 1+2+1+num+x.length() -1;
+    uint16_t len= 1+2+1+num+ciphertext.length();
     char* pp=(char*)&len;
     final_data.push_back(*((char *)pp+0));
     final_data.push_back(*((char *)pp+1));
     final_data.push_back((char)num);
     final_data.append(randstr);
-    final_data.append(x);
+    final_data.append(ciphertext);
 
-    LOG(INFO) << "len:" << len << " ciphertext:" << ciphertext << " x:" << strToHex(x) << " final_data:" << strToHex(final_data) << " final_data_len:" << final_data.size() << std::endl;
+    LOG(INFO) << "len:" << len << " plaintext:" << *plaintext << " plaintext_hex:" << strToHex(*plaintext) << " randstr:" << strToHex(randstr) << " ciphertext:" << strToHex(ciphertext) 
+            << " final_data:" << strToHex(final_data) << " final_data_len:" << final_data.size() << std::endl;
     return final_data;
-    
+
 }
 
 string UpStratumClient::cryptoDec(const string *randomStr, const string *ciphertext) {
@@ -549,7 +551,7 @@ string UpStratumClient::cryptoDec(const string *randomStr, const string *ciphert
           temp=*(uint16_t *)(p+i);
         }else if (l==i+3)
         {
-          temp=*(uint16_t *)(p+i)<<8+*(uint8_t *)(p+i+2);
+          temp = ((*(uint16_t *)(p+i))<<8) + *(uint8_t *)(p+i+2);
         }else
         {
           temp=*(uint32_t *)(p+i);

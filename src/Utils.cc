@@ -242,6 +242,16 @@ unsigned int simpleHash(const char *str) {
     return (hash & 0x7FFFFFFF); 
 }
 
+std::string chToHex(unsigned char ch)
+{
+	const std::string hex = "0123456789ABCDEF";
+ 
+	std::stringstream ss;
+	ss << hex[ch >> 4] << hex[ch & 0xf];
+ 
+	return ss.str();
+}
+
 
 /**
  * #purpose	: 字符串转十六进制字符串

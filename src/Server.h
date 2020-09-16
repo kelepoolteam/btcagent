@@ -326,7 +326,7 @@ class UpStratumClient {
 
   void initConnection();
   void disconnect();
-  string cryptoEnc(const string *ciphertext);
+  string cryptoEnc(const string *plaintext);
   string cryptoDec(const string *randomStr, const string *ciphertext);
 
 public:
