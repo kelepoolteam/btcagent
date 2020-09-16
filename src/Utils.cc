@@ -233,12 +233,29 @@ bool strEmpty(const string &str) {
   return str.find_last_not_of(" \t\f\v\n\r") == str.npos;
 }
 
-unsigned int simpleHash(const char *str)
-{
+unsigned int simpleHash(const char *str) {
     uint32_t seed = 131;
     uint32_t hash = 0;
     while (*str) {
         hash = hash * seed + (*str++);
     }
     return (hash & 0x7FFFFFFF); 
+}
+
+
+/**
+ * #purpose	: 字符串转十六进制字符串
+ * #note	: 可用于汉字字符串
+ * #param str		: 要转换成十六进制的字符串
+ * #param separator	: 十六进制字符串间的分隔符
+ * #return	: 接收转换后的字符串
+ */
+string strToHex(string str, std::string separator)
+{
+	const std::string hex = "0123456789ABCDEF";
+	std::stringstream ss;
+ 
+	for (std::string::size_type i = 0; i < str.size(); ++i)
+		ss << hex[(unsigned char)str[i] >> 4] << hex[(unsigned char)str[i] & 0xf] << separator;
+  return ss.str();
 }

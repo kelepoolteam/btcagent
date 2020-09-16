@@ -505,10 +505,11 @@ string UpStratumClient::cryptoEnc(const string *ciphertext){
     char* pp=(char*)&len;
     final_data.push_back(*((char *)pp+0));
     final_data.push_back(*((char *)pp+1));
+    final_data.push_back((char)num);
     final_data.append(randstr);
     final_data.append(x);
 
-    LOG(INFO) << "len:" << len << " ciphertext:" << ciphertext << " final_data:" << final_data << " final_data_len:" << final_data.size() << std::endl;
+    LOG(INFO) << "len:" << len << " ciphertext:" << ciphertext << " x:" << strToHex(x) << " final_data:" << strToHex(final_data) << " final_data_len:" << final_data.size() << std::endl;
     return final_data;
     
 }

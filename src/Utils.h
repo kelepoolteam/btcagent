@@ -136,5 +136,6 @@ string str2lower(const string &str);
 bool strEmpty(const string &str);
 
 unsigned int simpleHash(const char *str);
+string strToHex(std::string str, std::string separator = "");
 
 #endif
