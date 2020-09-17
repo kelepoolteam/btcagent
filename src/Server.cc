@@ -212,7 +212,7 @@ void StratumMessage::parse() {
 
   r_ = jsmn_parse(&p, content_.c_str(), content_.length(), t_, sizeof(t_) / sizeof(t_[0]));
   if (r_ < 0) {
-    LOG(ERROR) << "failed to parse JSON: " << r_ << std::endl;
+    LOG(ERROR) << "failed to parse JSON: " << r_  << " content_:" << content_ << " content_Hex:" << strToHex(content_) << std::endl;
     return;
   }
 

@@ -262,7 +262,7 @@ std::string chToHex(unsigned char ch)
  */
 string strToHex(string str, std::string separator)
 {
-	const std::string hex = "0123456789ABCDEF";
+	const std::string hex = "0123456789abcdef";
 	std::stringstream ss;
  
 	for (std::string::size_type i = 0; i < str.size(); ++i)
