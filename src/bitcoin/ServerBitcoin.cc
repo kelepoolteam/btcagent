@@ -504,7 +504,7 @@ void UpStratumClientBitcoin::handleStratumMessage(const string &line) {
   StratumMessageBitcoin smsg(line);
   if (!smsg.isValid()) {
     if (!strEmpty(line)) {
-      LOG(ERROR) << "decode line fail, not a json string: " << line << std::endl;
+      LOG(ERROR) << "decode line fail, not a json string hex: " << strToHex(line) << std::endl;
     }
     return;
   }

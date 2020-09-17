@@ -244,7 +244,7 @@ unsigned int simpleHash(const char *str) {
 
 std::string chToHex(unsigned char ch)
 {
-	const std::string hex = "0123456789ABCDEF";
+	const std::string hex = "0123456789abcdef";
  
 	std::stringstream ss;
 	ss << hex[ch >> 4] << hex[ch & 0xf];

@@ -212,7 +212,7 @@ void StratumMessage::parse() {
 
   r_ = jsmn_parse(&p, content_.c_str(), content_.length(), t_, sizeof(t_) / sizeof(t_[0]));
   if (r_ < 0) {
-    LOG(ERROR) << "failed to parse JSON: " << r_  << " content_:" << content_ << " content_Hex:" << strToHex(content_) << std::endl;
+    LOG(ERROR) << "failed to parse JSON: " << r_  << " content_Hex:" << strToHex(content_) << std::endl;
     return;
   }
 
@@ -363,14 +363,13 @@ bool UpStratumClient::handleMessage() {
   uint8_t buf[4];
   evbuffer_copyout(inBuf_, buf, 4);
 
-  LOG(INFO) << "buf: " << chToHex(buf[0]) << chToHex(buf[1]) << chToHex(buf[2]) << chToHex(buf[3]) << std::endl;
+  DLOG(INFO) << "buf: " << chToHex(buf[0]) << chToHex(buf[1]) << chToHex(buf[2]) << chToHex(buf[3]) << std::endl;
 
   // handle ex-message
   if (buf[0] == CMD_CRYPTO) 
   {
     const uint16_t ciphertextLen = *(uint16_t *)(buf + 1);
     const uint8_t randomLen = *(uint8_t *)(buf + 3);
-    LOG(INFO) << "ciphertextLen: " << ciphertextLen << " evBufLen:" << evBufLen << std::endl;
     if (evBufLen < ciphertextLen)   // didn't received the whole message yet
       return false;
 
@@ -381,7 +380,7 @@ bool UpStratumClient::handleMessage() {
     string randomStr = ciphertext.substr(4, randomLen);
     string encryptData = ciphertext.substr(4+randomLen, ciphertextLen - randomLen - 4);
     string ret = cryptoDec(&randomStr, &encryptData);
-    LOG(INFO) << "ciphertext:" << strToHex(ciphertext) << " randomStr:" << strToHex(randomStr) 
+    DLOG(INFO) << "ciphertext:" << strToHex(ciphertext) << " randomStr:" << strToHex(randomStr) 
               << " encryptData:" << strToHex(encryptData) << " plaintext:" << ret << std::endl;
 
     const uint8_t *ret_p = (uint8_t *)ret.data();
@@ -510,14 +509,13 @@ string UpStratumClient::cryptoEnc(const string *plaintext){
     final_data.append(randstr);
     final_data.append(ciphertext);
 
-    LOG(INFO) << "len:" << len << " plaintext:" << *plaintext << " plaintext_hex:" << strToHex(*plaintext) << " randstr:" << strToHex(randstr) << " ciphertext:" << strToHex(ciphertext) 
+    DLOG(INFO) << "len:" << len << " plaintext:" << *plaintext << " plaintext_hex:" << strToHex(*plaintext) << " randstr:" << strToHex(randstr) << " ciphertext:" << strToHex(ciphertext) 
             << " final_data:" << strToHex(final_data) << " final_data_len:" << final_data.size() << std::endl;
     return final_data;
 
 }
 
 string UpStratumClient::cryptoDec(const string *randomStr, const string *ciphertext) {
-
     string keyss="helloxxx";
     keyss.append(*randomStr);
     uint16_t l = ciphertext->length();
@@ -572,12 +570,15 @@ void UpStratumClient::sendData(const char *data, size_t len) {
     DLOG(INFO) << "UpStratumClient unavailable, skip(" << len << ")" << std::endl;
     return;
   }
-  string x(data);
-  string final_data = cryptoEnc(&x);
+  string buf;
+  buf.resize(len, 0);
+  uint8_t *p = (uint8_t *)buf.data();
+  memcpy(p, data, len);
+
+  DLOG(INFO) << "data_len:" << len << " buf:" << buf << " buf_hex:" << strToHex(buf) << " buf.size:" << buf.size() << std::endl;
+  string final_data = cryptoEnc(&buf);
   // add data to a bufferevent’s output buffer
   bufferevent_write(bev_, final_data.data(), final_data.size());
-  //bufferevent_write(bev_, data, len);
-  // DLOG(INFO) << "UpStratumClient send(" << len << "): " << data << std::endl;
 }
 
 bool UpStratumClient::sendRequest(const string &str) {
@@ -794,7 +795,7 @@ bool StratumServer::run(bool alwaysKeepDownconn, bool disconnectWhenLostAsicBoos
     assert(up->idx_ == i);
     addUpConnection(up);
   }
-  LOG(INFO) << "1111111111" << std::endl;
+
   // wait util all up session available
   {
     struct event *checkTimer;
@@ -810,13 +811,12 @@ bool StratumServer::run(bool alwaysKeepDownconn, bool disconnectWhenLostAsicBoos
     event_del(checkTimer);
     event_free(checkTimer);
   }
-  LOG(INFO) << "2222222222222" << std::endl;
 
   // if one of upsessions init failure, it'll stop the server.
   if (!running_) {
     return false;
   }
-  LOG(INFO) << "33333333333333" << std::endl;
+
   // every 15 seconds to check if up session's available
   resetUpWatcherTime(15);
 
@@ -859,18 +859,17 @@ void StratumServer::upSesssionCheckCallback(evutil_socket_t fd,
 void StratumServer::waitUtilAllUpSessionsAvailable() {
   for (int8_t i = 0; i < kUpSessionCount_; i++) {
 
-    LOG(INFO) << "aaaaaaaaaaaaa" << std::endl;
     // lost upsession when init, we should stop server
     if (upSessions_[i] == NULL) {
       stop();
       return;
     }
-    LOG(INFO) << "bbbbbbbbbbbbb" << std::endl;
+
     if (upSessions_[i]->isAvailable() == false) {
       return;  // someone is not ready yet
     }
   }
-  LOG(INFO) << "cccccccccccc" << std::endl;
+
   // if we get here, means all up session is available, break event loop
   event_base_loopbreak(base_);
 }
