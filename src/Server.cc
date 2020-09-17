@@ -551,7 +551,9 @@ string UpStratumClient::cryptoDec(const string *randomStr, const string *ciphert
           temp=*(uint16_t *)(p+i);
         }else if (l==i+3)
         {
-          temp=*(uint16_t *)(p+i+1)*256+*(uint8_t *)(p+i);
+          temp=*(uint16_t *)(p+i+1);
+          temp=temp<<8;
+          temp+=*(uint8_t *)(p+i);
         }else
         {
           temp=*(uint32_t *)(p+i);
