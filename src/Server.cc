@@ -525,42 +525,42 @@ string UpStratumClient::cryptoDec(const string *randomStr, const string *ciphert
   uint32_t r;
   uint32_t rt;
   string ssss;
-    while (l>i+4)
-    {
-      
-      temp=*(uint32_t *)(p+i);
-      string ft=keyss+to_string(i);
-      r = simpleHash(ft);
-      rt=temp^r;
-      char* pp=(char*)&rt;
-      final_data.push_back(*((char *)(pp+0)));
-      final_data.push_back(*((char *)(pp+1)));
-      final_data.push_back(*((char *)(pp+2)));
-      final_data.push_back(*((char *)(pp+3)));
-      i+=4;
-      
-    }
-      if (l==i+1){
-        temp=*(uint8_t *)(p+i);
-      }else if (l==i+2)
-      {
-        temp=*(uint16_t *)(p+i);
-      }else if (l==i+3)
-      {
-        temp=*(uint16_t *)(p+i+1);
-        temp=temp<<8;
-        temp+=*(uint8_t *)(p+i);
-      }else
-      {
-        temp=*(uint32_t *)(p+i);
-      }
-      r = simpleHash(keyss.data());
-      rt=temp^r;
-      char* pp=(char*)&rt;
-      for (int j=0;j<l-i;j++){
-      final_data.push_back(*((char *)(pp+j)));
-      }
-      return final_data;
+  while (l>i+4)
+  {
+    
+    temp=*(uint32_t *)(p+i);
+    string ft=keyss+to_string(i);
+    r = simpleHash(ft);
+    rt=temp^r;
+    char* pp=(char*)&rt;
+    final_data.push_back(*((char *)(pp+0)));
+    final_data.push_back(*((char *)(pp+1)));
+    final_data.push_back(*((char *)(pp+2)));
+    final_data.push_back(*((char *)(pp+3)));
+    i+=4;
+    
+  }
+  if (l==i+1){
+    temp=*(uint8_t *)(p+i);
+  }else if (l==i+2)
+  {
+    temp=*(uint16_t *)(p+i);
+  }else if (l==i+3)
+  {
+    temp=*(uint16_t *)(p+i+1);
+    temp=temp<<8;
+    temp+=*(uint8_t *)(p+i);
+  }else
+  {
+    temp=*(uint32_t *)(p+i);
+  }
+  r = simpleHash(keyss.data());
+  rt=temp^r;
+  char* pp=(char*)&rt;
+  for (int j=0;j<l-i;j++){
+  final_data.push_back(*((char *)(pp+j)));
+  }
+  return final_data;
 }
 
 void UpStratumClient::sendData(const char *data, size_t len) {
