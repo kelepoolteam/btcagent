@@ -490,79 +490,77 @@ void UpStratumClient::handleExMessage_SubmitResponse(const string *exMessage) {
 }
 
 string UpStratumClient::cryptoEnc(const string *plaintext){
-    srand((unsigned)time(0));
-    uint8_t num = rand() % 8 + 1;
-    string randstr;
-    for (int i=0;i<num;i++){
-        uint8_t tp=rand()%256;
-        randstr.push_back((char)tp);
-    }
-    string ciphertext = cryptoDec(&randstr, plaintext);
-    string final_data;
-    uint8_t px=0x1fU;
-    final_data.push_back((char)px);
-    uint16_t len= 1+2+1+num+ciphertext.length();
-    char* pp=(char*)&len;
-    final_data.push_back(*((char *)pp+0));
-    final_data.push_back(*((char *)pp+1));
-    final_data.push_back((char)num);
-    final_data.append(randstr);
-    final_data.append(ciphertext);
-
-    DLOG(INFO) << "len:" << len << " plaintext:" << *plaintext << " plaintext_hex:" << strToHex(*plaintext) << " randstr:" << strToHex(randstr) << " ciphertext:" << strToHex(ciphertext) 
-            << " final_data:" << strToHex(final_data) << " final_data_len:" << final_data.size() << std::endl;
-    return final_data;
+  srand((unsigned)time(0));
+  uint8_t num = rand() % 8 + 1;
+  string randstr;
+  for (int i=0;i<num;i++){
+      uint8_t tp=rand()%256;
+      randstr.push_back((char)tp);
+  }
+  string ciphertext = cryptoDec(&randstr, plaintext);
+  string final_data;
+  uint8_t px=0x1fU;
+  final_data.push_back((char)px);
+  uint16_t len= 1+2+1+num+ciphertext.length();
+  char* pp=(char*)&len;
+  final_data.push_back(*((char *)pp+0));
+  final_data.push_back(*((char *)pp+1));
+  final_data.push_back((char)num);
+  final_data.append(randstr);
+  final_data.append(ciphertext);
+  DLOG(INFO) << "len:" << len << " plaintext:" << *plaintext << " plaintext_hex:" << strToHex(*plaintext) << " randstr:" << strToHex(randstr) << " ciphertext:" << strToHex(ciphertext) 
+          << " final_data:" << strToHex(final_data) << " final_data_len:" << final_data.size() << std::endl;
+  return final_data;
 
 }
 
 string UpStratumClient::cryptoDec(const string *randomStr, const string *ciphertext) {
-    string keyss="helloxxx";
-    keyss.append(*randomStr);
-    uint16_t l = ciphertext->length();
-    uint16_t i=0;
-    const uint8_t *p = (uint8_t *)ciphertext->data();
-    uint32_t temp;
-    string final_data;
-    uint32_t r;
-    uint32_t rt;
-    string ssss;
-
-      while (l>i+4)
+  string keyss="helloxxx";
+  keyss.append(*randomStr);
+  uint16_t l = ciphertext->length();
+  uint16_t i=0;
+  const uint8_t *p = (uint8_t *)ciphertext->data();
+  uint32_t temp;
+  string final_data;
+  uint32_t r;
+  uint32_t rt;
+  string ssss;
+    while (l>i+4)
+    {
+      
+      temp=*(uint32_t *)(p+i);
+      string ft=keyss+to_string(i);
+      r = simpleHash(ft);
+      rt=temp^r;
+      char* pp=(char*)&rt;
+      final_data.push_back(*((char *)(pp+0)));
+      final_data.push_back(*((char *)(pp+1)));
+      final_data.push_back(*((char *)(pp+2)));
+      final_data.push_back(*((char *)(pp+3)));
+      i+=4;
+      
+    }
+      if (l==i+1){
+        temp=*(uint8_t *)(p+i);
+      }else if (l==i+2)
       {
-        
+        temp=*(uint16_t *)(p+i);
+      }else if (l==i+3)
+      {
+        temp=*(uint16_t *)(p+i+1);
+        temp=temp<<8;
+        temp+=*(uint8_t *)(p+i);
+      }else
+      {
         temp=*(uint32_t *)(p+i);
-        string ft=keyss+to_string(i);
-        r = simpleHash(ft);
-        rt=temp^r;
-        char* pp=(char*)&rt;
-        final_data.push_back(*((char *)(pp+0)));
-        final_data.push_back(*((char *)(pp+1)));
-        final_data.push_back(*((char *)(pp+2)));
-        final_data.push_back(*((char *)(pp+3)));
-        i+=4;
-        
       }
-        if (l==i+1){
-          temp=*(uint8_t *)(p+i);
-        }else if (l==i+2)
-        {
-          temp=*(uint16_t *)(p+i);
-        }else if (l==i+3)
-        {
-          temp=*(uint16_t *)(p+i+1);
-          temp=temp<<8;
-          temp+=*(uint8_t *)(p+i);
-        }else
-        {
-          temp=*(uint32_t *)(p+i);
-        }
-        r = simpleHash(keyss.data());
-        rt=temp^r;
-        char* pp=(char*)&rt;
-        for (int j=0;j<l-i;j++){
-        final_data.push_back(*((char *)(pp+j)));
-        }
-        return final_data;
+      r = simpleHash(keyss.data());
+      rt=temp^r;
+      char* pp=(char*)&rt;
+      for (int j=0;j<l-i;j++){
+      final_data.push_back(*((char *)(pp+j)));
+      }
+      return final_data;
 }
 
 void UpStratumClient::sendData(const char *data, size_t len) {
