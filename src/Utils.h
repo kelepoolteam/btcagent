@@ -135,7 +135,7 @@ const char *splitNotify(const string &line, int number = 14);
 string str2lower(const string &str);
 bool strEmpty(const string &str);
 
-unsigned int simpleHash(const char *str);
+unsigned int simple_hash(const char *str);
 std::string chToHex(unsigned char ch);
 string strToHex(std::string str, std::string separator = "");
 string strHex2StrObj(string hex);

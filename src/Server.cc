@@ -532,7 +532,7 @@ string UpStratumClient::cryptoDec(const string *randomStr, const string *ciphert
         
         temp=*(uint32_t *)(p+i);
         keyss.append("i");
-        r = simpleHash(keyss.c_str());
+        r = simple_hash(keyss.c_str());
         rt=temp^r;
         char* pp=(char*)&rt;
         final_data.push_back(*((char *)(pp+0)));
@@ -556,7 +556,7 @@ string UpStratumClient::cryptoDec(const string *randomStr, const string *ciphert
         {
           temp=*(uint32_t *)(p+i);
         }
-        r = simpleHash(keyss.data());
+        r = simple_hash(keyss.data());
         rt=temp^r;
         char* pp=(char*)&rt;
         for (int j=0;j<l-i;j++){
