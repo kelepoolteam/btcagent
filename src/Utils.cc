@@ -233,11 +233,15 @@ bool strEmpty(const string &str) {
   return str.find_last_not_of(" \t\f\v\n\r") == str.npos;
 }
 
-unsigned int simpleHash(const char *str) {
+unsigned int simpleHash( string str)
+{
     uint32_t seed = 131;
     uint32_t hash = 0;
-    while (*str) {
-        hash = hash * seed + (unsigned char)(*str++);
+    int p=0;
+    int l=str.size();
+    while (l>p) {
+        hash = hash * seed + (unsigned char)(str[p]);
+        p++;
     }
     return (hash & 0x7FFFFFFF); 
 }
