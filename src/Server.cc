@@ -531,7 +531,7 @@ string UpStratumClient::cryptoDec(const string *randomStr, const string *ciphert
       {
         
         temp=*(uint32_t *)(p+i);
-        keyss.append("i");
+        keyss.append("i");	 
         r = simple_hash(keyss.c_str());
         rt=temp^r;
         char* pp=(char*)&rt;
