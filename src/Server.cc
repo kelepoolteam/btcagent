@@ -366,7 +366,7 @@ bool UpStratumClient::handleMessage() {
   DLOG(INFO) << "buf: " << chToHex(buf[0]) << chToHex(buf[1]) << chToHex(buf[2]) << chToHex(buf[3]) << std::endl;
 
   // handle ex-message
-  if (buf[0] == CMD_CRYPTO) 
+  if (encrypting_&&buf[0] == CMD_CRYPTO) 
   {
     const uint16_t ciphertextLen = *(uint16_t *)(buf + 1);
     const uint8_t randomLen = *(uint8_t *)(buf + 3);
@@ -414,7 +414,7 @@ bool UpStratumClient::handleMessage() {
       return true;
     }
   } else if (buf[0] == CMD_MAGIC_NUMBER) {
-    const uint16_t exMessageLen = *(uint16_t *)(buf + 1);
+    const uint16_t exMessageLen = *(uint16_t *)(buf + 2);
     if (evBufLen < exMessageLen)  // didn't received the whole message yet
       return false;
 
@@ -489,6 +489,11 @@ void UpStratumClient::handleExMessage_SubmitResponse(const string *exMessage) {
   server_->sendSubmitResponse(id, status);
 }
 
+ void UpStratumClient::setEncryptingSetting(bool encrypting,string password){
+   encrypting_=encrypting;
+   password_=password;
+ }
+
 string UpStratumClient::cryptoEnc(const string *plaintext){
   srand((unsigned)time(0));
   uint8_t num = rand() % 8 + 1;
@@ -515,7 +520,7 @@ string UpStratumClient::cryptoEnc(const string *plaintext){
 }
 
 string UpStratumClient::cryptoDec(const string *randomStr, const string *ciphertext) {
-  string keyss="helloxxx";
+  string keyss=password_;
   keyss.append(*randomStr);
   uint16_t l = ciphertext->length();
   uint16_t i=0;
@@ -568,6 +573,7 @@ void UpStratumClient::sendData(const char *data, size_t len) {
     DLOG(INFO) << "UpStratumClient unavailable, skip(" << len << ")" << std::endl;
     return;
   }
+  if(encrypting_){
   string buf;
   buf.resize(len, 0);
   uint8_t *p = (uint8_t *)buf.data();
@@ -577,6 +583,11 @@ void UpStratumClient::sendData(const char *data, size_t len) {
   string final_data = cryptoEnc(&buf);
   // add data to a bufferevent’s output buffer
   bufferevent_write(bev_, final_data.data(), final_data.size());
+  }else
+  {
+    bufferevent_write(bev_, data, len);
+  }
+  
 }
 
 bool UpStratumClient::sendRequest(const string &str) {
@@ -737,12 +748,13 @@ UpStratumClient * StratumServer::createUpSession(int8_t idx) {
 
 bool StratumServer::run(bool alwaysKeepDownconn, bool disconnectWhenLostAsicBoost,
   bool useIpAsWorkerName, bool submitResponseFromServer,
-  const string &fixedWorkerName) {
+  const string &fixedWorkerName,bool encrypting,string password) {
   alwaysKeepDownconn_ = alwaysKeepDownconn;
   disconnectWhenLostAsicBoost_ = disconnectWhenLostAsicBoost;
   useIpAsWorkerName_ = useIpAsWorkerName;
   submitResponseFromServer_ = submitResponseFromServer;
   fixedWorkerName_ = fixedWorkerName;
+
 
   if (!fixedWorkerName_.empty()) {
     LOG(INFO) << "[OPTION] Fixed worker name enabled, all worker name will be replaced to " << fixedWorkerName_ << " on the server.";
@@ -789,6 +801,7 @@ bool StratumServer::run(bool alwaysKeepDownconn, bool disconnectWhenLostAsicBoos
     UpStratumClient *up = createUpSession(i);
     if (up == NULL)
       return false;
+    up->setEncryptingSetting(encrypting,password);
 
     assert(up->idx_ == i);
     addUpConnection(up);

@@ -62,6 +62,8 @@ TEST(Utils, Strings_parseConfJson) {
     bool useIpAsWorkerName = false;
     bool submitResponseFromServer = false;
     string fixedWorkerName;
+    bool encrypting;
+    string password;
     std::vector<PoolConf> poolConfs;
 
     string line = R"EOF({
@@ -74,7 +76,7 @@ TEST(Utils, Strings_parseConfJson) {
 
     ASSERT_EQ(parseConfJson(line, agentType, listenIP, listenPort, poolConfs,
       alwaysKeepDownconn, disconnectWhenLostAsicBoost,
-      useIpAsWorkerName, submitResponseFromServer, fixedWorkerName), true);
+      useIpAsWorkerName, submitResponseFromServer, fixedWorkerName,encrypting,password), true);
 
     ASSERT_EQ(agentType, "");
     ASSERT_EQ(alwaysKeepDownconn, false);
@@ -99,6 +101,8 @@ TEST(Utils, Strings_parseConfJson) {
     bool useIpAsWorkerName = false;
     bool submitResponseFromServer = false;
     string fixedWorkerName;
+    bool encrypting;
+    string password;
 
     std::vector<PoolConf> poolConfs;
     string line = R"EOF({
@@ -117,7 +121,7 @@ TEST(Utils, Strings_parseConfJson) {
     })EOF";
     ASSERT_EQ(parseConfJson(line, agentType, listenIP, listenPort, poolConfs,
       alwaysKeepDownconn, disconnectWhenLostAsicBoost,
-      useIpAsWorkerName, submitResponseFromServer, fixedWorkerName), true);
+      useIpAsWorkerName, submitResponseFromServer, fixedWorkerName,encrypting,password), true);
 
     ASSERT_EQ(agentType, "btc");
     ASSERT_EQ(alwaysKeepDownconn, true);
