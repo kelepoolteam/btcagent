@@ -264,7 +264,7 @@ public:
   inline bool useIpAsWorkerName() { return useIpAsWorkerName_; }
   inline bool submitResponseFromServer() { return submitResponseFromServer_; }
   inline const string &fixedWorkerName() { return fixedWorkerName_; }
-
+  
   void addDownConnection   (StratumSession *conn);
   void removeDownConnection(StratumSession *conn);
 
@@ -300,7 +300,7 @@ public:
 
   bool run(bool alwaysKeepDownconn, bool disconnectWhenLostAsicBoost,
     bool useIpAsWorkerName, bool submitResponseFromServer,
-    const string &fixedWorkerName);
+    const string &fixedWorkerName,bool encrypting=false);
   void stop();
 };
 
@@ -317,6 +317,7 @@ class UpStratumClient {
   struct evdns_base *evdnsBase_ = nullptr;
   struct bufferevent *bev_ = nullptr;
   struct evbuffer *inBuf_ = nullptr;
+  bool encrypting_;
 
   bool handleMessage();
   virtual void handleStratumMessage(const string &line) = 0;
@@ -328,6 +329,7 @@ class UpStratumClient {
   void disconnect();
   string cryptoEnc(const string *plaintext);
   string cryptoDec(const string *randomStr, const string *ciphertext);
+  void setEncryptingSetting(bool encrypting);
 
 public:
   UpStratumClientState state_ = UP_INIT;

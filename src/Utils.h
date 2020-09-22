@@ -126,7 +126,7 @@ bool parseConfJson(const string &jsonStr,
                    std::vector<PoolConf> &poolConfs,
                    bool &alwaysKeepDownconn, bool &disconnectWhenLostAsicBoost,
                    bool &useIpAsWorkerName, bool &submitResponseFromServer,
-                   string &fixedWorkerName);
+                   string &fixedWorkerName,bool &encrypting);
 
 // slite stratum 'mining.notify'
 // 14: the end of coinbase1
