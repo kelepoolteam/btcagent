@@ -112,6 +112,7 @@ int main(int argc, char **argv) {
   bool useIpAsWorkerName = false;
   bool submitResponseFromServer = false;
   bool encrypting = false;
+  string password="";
   string fixedWorkerName;
 
     // get conf json string
@@ -120,7 +121,7 @@ int main(int argc, char **argv) {
                         std::istreambuf_iterator<char>());
     if (!parseConfJson(agentJsonStr, agentType, listenIP, listenPort, poolConfs,
                        alwaysKeepDownconn, disconnectWhenLostAsicBoost, useIpAsWorkerName,
-                       submitResponseFromServer, fixedWorkerName,encrypting)) {
+                       submitResponseFromServer, fixedWorkerName,encrypting,password)) {
       LOG(ERROR) << "parse json config file failure" << std::endl;
       return 1;
     }

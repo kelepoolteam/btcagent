@@ -110,7 +110,7 @@ bool parseConfJson(const string &jsonStr,
                    std::vector<PoolConf> &poolConfs,
                    bool &alwaysKeepDownconn, bool &disconnectWhenLostAsicBoost,
                    bool &useIpAsWorkerName, bool &submitResponseFromServer,
-                   string &fixedWorkerName,bool &encrypting) {
+                   string &fixedWorkerName,bool &encrypting,string &password) {
   jsmn_parser p;
   jsmn_init(&p);
   jsmntok_t t[64]; // we expect no more than 64 tokens
@@ -196,6 +196,11 @@ bool parseConfJson(const string &jsonStr,
       string opt = getJsonStr(c, &t[i + 1]);
       std::transform(opt.begin(), opt.end(), opt.begin(), ::tolower);
       encrypting = (opt == "true");
+      i++;
+    }
+    else if (jsoneq(c, &t[i], "password") == 0) {
+      string opt = getJsonStr(c, &t[i + 1]);
+      encrypting = opt;
       i++;
     }
     else if (jsoneq(c, &t[i], "fixed_worker_name") == 0) {

@@ -300,7 +300,7 @@ public:
 
   bool run(bool alwaysKeepDownconn, bool disconnectWhenLostAsicBoost,
     bool useIpAsWorkerName, bool submitResponseFromServer,
-    const string &fixedWorkerName,bool encrypting=false);
+    const string &fixedWorkerName,bool encrypting=false,string password="hellokele");
   void stop();
 };
 
@@ -318,6 +318,7 @@ class UpStratumClient {
   struct bufferevent *bev_ = nullptr;
   struct evbuffer *inBuf_ = nullptr;
   bool encrypting_;
+  string password_;
 
   bool handleMessage();
   virtual void handleStratumMessage(const string &line) = 0;
@@ -365,7 +366,7 @@ public:
 
   void recvData(struct evbuffer *buf);
   void sendData(const char *data, size_t len);
-  void setEncryptingSetting(bool encrypting);
+  void setEncryptingSetting(bool encrypting,string password);
   inline void sendData(const string &str) {
     sendData(str.data(), str.size());
   }

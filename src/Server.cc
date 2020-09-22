@@ -489,8 +489,9 @@ void UpStratumClient::handleExMessage_SubmitResponse(const string *exMessage) {
   server_->sendSubmitResponse(id, status);
 }
 
- void UpStratumClient::setEncryptingSetting(bool encrypting){
+ void UpStratumClient::setEncryptingSetting(bool encrypting,string password){
    encrypting_=encrypting;
+   password_=password;
  }
 
 string UpStratumClient::cryptoEnc(const string *plaintext){
@@ -519,7 +520,7 @@ string UpStratumClient::cryptoEnc(const string *plaintext){
 }
 
 string UpStratumClient::cryptoDec(const string *randomStr, const string *ciphertext) {
-  string keyss="helloxxx";
+  string keyss=password_;
   keyss.append(*randomStr);
   uint16_t l = ciphertext->length();
   uint16_t i=0;
@@ -747,7 +748,7 @@ UpStratumClient * StratumServer::createUpSession(int8_t idx) {
 
 bool StratumServer::run(bool alwaysKeepDownconn, bool disconnectWhenLostAsicBoost,
   bool useIpAsWorkerName, bool submitResponseFromServer,
-  const string &fixedWorkerName,bool encrypting) {
+  const string &fixedWorkerName,bool encrypting,string password) {
   alwaysKeepDownconn_ = alwaysKeepDownconn;
   disconnectWhenLostAsicBoost_ = disconnectWhenLostAsicBoost;
   useIpAsWorkerName_ = useIpAsWorkerName;
@@ -800,7 +801,7 @@ bool StratumServer::run(bool alwaysKeepDownconn, bool disconnectWhenLostAsicBoos
     UpStratumClient *up = createUpSession(i);
     if (up == NULL)
       return false;
-    up->setEncryptingSetting(encrypting);
+    up->setEncryptingSetting(encrypting,password);
 
     assert(up->idx_ == i);
     addUpConnection(up);
