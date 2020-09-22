@@ -200,7 +200,7 @@ bool parseConfJson(const string &jsonStr,
     }
     else if (jsoneq(c, &t[i], "password") == 0) {
       string opt = getJsonStr(c, &t[i + 1]);
-      encrypting = opt;
+      password = opt;
       i++;
     }
     else if (jsoneq(c, &t[i], "fixed_worker_name") == 0) {
