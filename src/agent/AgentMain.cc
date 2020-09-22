@@ -141,7 +141,7 @@ int main(int argc, char **argv) {
     gStratumServer->addUpPool(poolConfs);
 
     if (!gStratumServer->run(alwaysKeepDownconn, disconnectWhenLostAsicBoost,
-      useIpAsWorkerName, submitResponseFromServer, fixedWorkerName)) {
+      useIpAsWorkerName, submitResponseFromServer, fixedWorkerName,encrypting)) {
       LOG(ERROR) << "setup failure" << std::endl;
     }
     delete gStratumServer;
