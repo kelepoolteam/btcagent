@@ -329,7 +329,7 @@ class UpStratumClient {
   void disconnect();
   string cryptoEnc(const string *plaintext);
   string cryptoDec(const string *randomStr, const string *ciphertext);
-  void setEncryptingSetting(bool encrypting);
+  
 
 public:
   UpStratumClientState state_ = UP_INIT;
@@ -365,6 +365,7 @@ public:
 
   void recvData(struct evbuffer *buf);
   void sendData(const char *data, size_t len);
+  void setEncryptingSetting(bool encrypting);
   inline void sendData(const string &str) {
     sendData(str.data(), str.size());
   }

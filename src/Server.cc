@@ -800,7 +800,7 @@ bool StratumServer::run(bool alwaysKeepDownconn, bool disconnectWhenLostAsicBoos
     UpStratumClient *up = createUpSession(i);
     if (up == NULL)
       return false;
-    up.setEncryptingSetting(encrypting);
+    up->setEncryptingSetting(encrypting);
 
     assert(up->idx_ == i);
     addUpConnection(up);
