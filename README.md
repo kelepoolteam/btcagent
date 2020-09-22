@@ -207,3 +207,21 @@ $ ulimit -Sn
 $ ulimit -Hn
 65535
 ```
+
+
+**Lightweight anti - analysis encryption module**
+
+We adopt the high speed stream encryption algorithm based on randomness, which can provide strong anti-correlation analysis ability, and the increase length of ciphertext is determined.
+
+We redefined the data receiving structure:
+
+Special byte | encrypted length | random content length | random content | complete data ciphertext
+
+The random number and private key are used as the cipher to generate the mask and stream encrypt the original data,then splice the final message according to the above structure.
+
+```
+If you want to enable this feature, you need to set encrypting(in agent_config.json default false) to true, and the mine pool receiver needs to support the same encryption algorithm.
+
+```
+"encrypting":true
+```
